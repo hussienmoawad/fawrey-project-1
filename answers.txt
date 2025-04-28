@@ -1,0 +1,29 @@
+
+ How Script Handles Arguments and Options?
+
+- The script uses `getopts` to parse command-line options `-n` and `-v`.
+- `-n` enables showing line numbers before each matching line.
+- `-v` inverts the match (show lines that do not match the search string).
+- `--help` option displays a usage guide and exits.
+- After parsing options, the script shifts arguments and expects:
+   - The search string as the next argument.
+   - The filename as the final argument.
+- It validates if both are present, and if the file exists.
+- It reads the file line by line, using `grep -i` to do case-insensitive matching, and applies options accordingly.
+
+  If Supporting Regex or -i/-c/-l Options?
+
+- To support regular expressions, I would switch from `grep -i` to `grep -Ei` (extended regex with case insensitive matching).
+- To support `-i` separately, I would add a flag `ignore_case=true`, and conditionally adjust the grep command.
+- For `-c` (count of matching lines), I would add a counter instead of printing matching lines.
+- For `-l` (list filenames), the script would print the filename once a match is found and immediately exit.
+- This would require additional flags and slightly restructuring the main reading loop.
+
+
+ Hardest Part of the Script and Why?
+
+- The hardest par- The hardest part was handling multiple combined options like `-vn` or `-nv.
+- Using `getopts` made it easier, but still required careful checking to ensure the correct behavior when both `-v` and `-n` are set.
+- Another small challenge was validating missing arguments correctly when the user provides incomplete inputs.
+
+
