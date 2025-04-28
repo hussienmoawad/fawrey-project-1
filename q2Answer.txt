@@ -1,0 +1,81 @@
+Problem 1: DNS Resolution Failure
+I encountered an issue where I couldn’t access internal.example.com from multiple systems, and users were getting a "host not found" error.
+After checking the DNS resolution, I found that the domain internal.example.com wasn’t being resolved correctly.
+I decided to check the DNS configuration in /etc/resolv.conf to make sure the DNS servers were correctly set.
+
+Steps Taken:
+First, I checked the current DNS settings by running the command cat /etc/resolv.conf.
+The file should list DNS servers that the system uses to resolve domain names.
+In my case, it was configured with an internal DNS server and Google’s DNS (8.8.8.8).
+
+To ensure DNS resolution was working, I ran a test using the dig and nslookup commands.
+ Unfortunately, the domain didn’t resolve when using the internal DNS. However,
+ it resolved correctly when I used Google's DNS (8.8.8.8).
+
+This indicated that the internal DNS server was not functioning as expected.
+
+Solution:
+The problem was with the internal DNS server. I needed to ensure that the internal DNS server was operational.
+As a quick workaround, I modified the /etc/resolv.conf file to prioritize Google's DNS (8.8.8.8), which allowed the domain to be resolved successfully.
+
+Problem 2: Service Not Reachable (Web Server on Ports 80/443)
+After resolving the DNS issue, I still couldn't access the website internal.example.com.
+Even though the domain was resolving correctly, the web service (either Apache or Nginx) was not responding. 
+I suspected that the service might not be running or that there could be firewall issues.
+
+Steps Taken:
+1)I first checked if the web server was listening on the required ports (80 for HTTP and 443 for HTTPS).
+I used the ss command (ss -tuln | grep -E '80|443') to see if any services were listening on these ports.
+2)The command returned no output, indicating that the web server was not running on those ports.
+3)I checked the status of Apache and Nginx services using systemctl. Both services were not running.
+
+Solution:
+I restarted the Apache and Nginx services using systemctl restart httpd and systemctl restart nginx.
+After restarting, the services were successfully running, and I was able to access the web dashboard.
+
+Problem 3: Firewall Blocking Traffic on Ports 80/443
+After confirming that the web service was running, I still couldn’t access the dashboard.
+I suspected that the firewall might be blocking traffic on ports 80 (HTTP) and 443 (HTTPS).
+
+Steps Taken:
+I checked the firewall rules by running sudo firewall-cmd --list-all to see if ports 80 and 443 were open.
+
+The output showed that these ports were not open, so I added them to the firewall using the following commands:
+
+sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
+
+sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
+
+I reloaded the firewall to apply the changes using sudo firewall-cmd --reload.
+
+Solution:
+Once the firewall allowed traffic on ports 80 and 443, I was able to access the web dashboard successfully.
+
+Problem 4: Network Connectivity Issues
+Despite the DNS resolution and firewall settings being correct, I was still facing issues accessing the service.
+I realized that there could be network connectivity issues preventing the system from reaching internal.example.com.
+
+Steps Taken:
+1)I ran the ping command to check network connectivity: ping internal.example.com. The ping didn’t return any results, which meant there were network-related issues.
+
+2)I used traceroute to check the path the packets were taking and whether there were any issues along the way.
+
+Solution:
+The traceroute command revealed that there was a routing issue, and the packets were not reaching the destination due to incorrect network routes. After fixing the routing table, I was able to reach internal.example.com successfully.
+
+Problem 5: Testing with /etc/hosts for DNS Override
+As a temporary measure to bypass DNS resolution issues, I added a local entry for internal.example.com in the /etc/hosts file to directly map the domain to an IP address.
+
+Steps Taken:
+I edited the /etc/hosts file and added the IP address of internal.example.com, like so:
+
+plaintext
+Copy
+Edit
+192.168.1.10 internal.example.com
+After saving the changes, I tested accessing the domain using curl http://internal.example.com. This worked successfully, confirming that the issue was DNS-related.
+
+Solution:
+While waiting for the DNS server to be fixed, I continued using the /etc/hosts file to access the web dashboard.
+
+
